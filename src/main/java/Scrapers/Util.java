@@ -1,6 +1,8 @@
-package scrape;
+package Scrapers;
 
 import io.github.bonigarcia.wdm.WebDriverManager;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WindowType;
 import org.openqa.selenium.chrome.ChromeDriver;
 
 import java.io.IOException;
@@ -10,19 +12,17 @@ import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.Hashtable;
 
 public class Util {
     public static void test() {
         System.out.println("heyy this might actully work");
     }
 
-    public static String createCsvFile(String fileName, String directoryName) throws IOException {
-        // get date
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("ddMMMyyyy");
-        LocalDateTime now = LocalDateTime.now();
-
+    public static String createCsvFile(String fileName, String directoryName, String date) throws IOException {
         // format file name
-        String csvName = fileName.split("\\s")[0] + dtf.format(now) + ".csv";
+        String csvName = fileName.split("\\s")[0] + date + ".csv";
         csvName = csvName.replaceAll("\\s", "");
 
         // create file
@@ -44,7 +44,32 @@ public class Util {
         return pathStr;
     }
 
-    public static void createDataDirectory(String directoryName) throws IOException {
+    public static String[] createAllDirectories(String[] jobSites, String Job, String Location, String Date) throws IOException {
+        // get current directory of project
+        String baseDirectory = System.getProperty("user.dir");
+        String[] directories = new String[jobSites.length];
+
+        // format strings
+        Job = Job.replaceAll("\\s", "_");
+        Location = Location.replaceAll("\\s", "");
+
+        // create directories for each job
+        for (int i = 0; i < jobSites.length; i++) {
+            try {
+                String directoryName = baseDirectory + "\\" + "Data" + "\\" +jobSites[i] + "\\";
+                createSingleDirectory(directoryName);
+                createSingleDirectory(directoryName + Date + "\\");
+                createSingleDirectory(directoryName + Date + "\\" + Location + "\\");
+                createSingleDirectory(directoryName + Date + "\\" + Location + "\\" + Job + "\\");
+                directories[i] = directoryName;
+            } catch (Exception e) {
+                System.out.println("Unable to create data Directories" + e.getMessage());
+            }
+        }
+        return directories;
+    }
+
+    private static void createSingleDirectory(String directoryName) throws IOException {
         // check if data storage directory exist, if not create one
         Path path = Paths.get(directoryName);
         if (!Files.exists(path)) {
@@ -59,6 +84,18 @@ public class Util {
         }
     }
 
+    public static WebDriver createChromeDriver() {
+        WebDriver driver;
+        WebDriverManager.chromedriver().setup();
+        driver = new ChromeDriver();
+        driver.manage().timeouts().implicitlyWait(Duration.ofMillis(500));
+        return driver;
+    }
 
-
+    public static String getDate() {
+        // get date
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("ddMMMyyyy");
+        LocalDateTime now = LocalDateTime.now();
+        return dtf.format(now);
+    }
 }

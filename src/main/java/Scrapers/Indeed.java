@@ -2,12 +2,7 @@ package Scrapers;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -18,30 +13,25 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.chrome.ChromeDriver;
 
-import io.github.bonigarcia.wdm.WebDriverManager;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 public class Indeed {
+    static WebDriver driver;
+    String webAddress;
+    static String dataDirectoryPath = "C:\\Users\\wsboh\\documents\\Programming\\java\\web_scrape\\JobMagnet\\data\\Indeed\\";
 
-    public static WebDriver driver;
 
-
-    public static void main(String[] args) throws InterruptedException, IOException {
-
-        // define constants
-        String jobTitle = "Kotlin";
-        String jobLocation = "Raleigh, NC";
-
-        String dataDirectoryPath = "C:\\Users\\wsboh\\documents\\Programming\\java\\web_scrape\\JobMagnet\\data\\Indeed\\";
+    public static void main(String jobTitle, String jobLocation, WebDriver chromeDriver) throws InterruptedException, IOException {
         String csvFileName = jobTitle + "," + jobLocation;
 
+        driver = chromeDriver;
+
+
         // create files and drivers
-        scrape.Util.createDataDirectory(dataDirectoryPath);
-        String csvpath = scrape.Util.createCsvFile(csvFileName, dataDirectoryPath);
-        createChromeDriver();
+        String csvpath = Util.createCsvFile(csvFileName, dataDirectoryPath, "12072223");
+        driver = Util.createChromeDriver();
 
         // setup csv writer
         FileWriter outputfile = new FileWriter(csvpath);
@@ -67,17 +57,11 @@ public class Indeed {
             System.out.println("finished page " + pagenum);
             Thread.sleep(7000);
 
-            if (!nextPage()) {
+            if (!clickNextPage()) {
                 break;
             }
         }
         writer.close();
-    }
-
-    public static void createChromeDriver() {
-        WebDriverManager.chromedriver().setup();
-        driver = new ChromeDriver();
-        driver.manage().timeouts().implicitlyWait(Duration.ofMillis(500));
     }
 
     public static void searchFields(String job, String location) {
@@ -202,7 +186,7 @@ public class Indeed {
         return jobArray;
     }
 
-    public static boolean nextPage() {
+    public static boolean clickNextPage() {
         try {
             try {
                 WebElement next = driver.findElement(By.xpath("//a[@aria-label='Next']"));
